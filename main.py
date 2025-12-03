@@ -1,10 +1,14 @@
 from flask import Flask, render_template, request
 import sqlite3
+import os
 
 app = Flask(__name__)
 
 def get_db():
-    conn = sqlite3.connect('model_results.db')
+    db_name = request.args.get('db', 'new_results.db')
+    if not os.path.exists(db_name):
+        db_name = 'new_results.db'
+    conn = sqlite3.connect(db_name)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -18,11 +22,15 @@ def index():
     categories = cursor.execute('SELECT DISTINCT category FROM results ORDER BY category').fetchall()
     
     # Get filter parameters
+    selected_db = request.args.get('db', 'new_results.db')
     selected_model = request.args.get('model', '')
     selected_category = request.args.get('category', '')
     min_score = request.args.get('min_score', '')
     max_score = request.args.get('max_score', '')
     page = int(request.args.get('page', 1))
+    
+    # Get available databases
+    dbs = [f for f in os.listdir('.') if f.endswith('.db')]
     
     # Build query
     query = 'SELECT * FROM results WHERE 1=1'
@@ -62,12 +70,13 @@ def index():
                          total_pages=total_pages,
                          models=models, 
                          categories=categories,
+                         dbs=dbs,
+                         selected_db=selected_db,
                          selected_model=selected_model,
                          selected_category=selected_category,
                          min_score=min_score,
                          max_score=max_score)
 
 if __name__ == '__main__':
-    import os
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
