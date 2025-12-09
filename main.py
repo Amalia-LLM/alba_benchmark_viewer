@@ -14,6 +14,12 @@ def get_db():
 
 @app.route('/')
 def index():
+    selected_db = request.args.get('db', 'new_results.db')
+    
+    # Route to evaluations view if evaluations.db is selected
+    if selected_db == 'evaluations.db':
+        return evaluations()
+    
     conn = get_db()
     cursor = conn.cursor()
     
@@ -22,7 +28,6 @@ def index():
     categories = cursor.execute('SELECT DISTINCT category FROM results ORDER BY category').fetchall()
     
     # Get filter parameters
-    selected_db = request.args.get('db', 'new_results.db')
     selected_model = request.args.get('model', '')
     selected_category = request.args.get('category', '')
     min_score = request.args.get('min_score', '')
@@ -74,6 +79,71 @@ def index():
                          selected_db=selected_db,
                          selected_model=selected_model,
                          selected_category=selected_category,
+                         min_score=min_score,
+                         max_score=max_score)
+
+@app.route('/evaluations')
+def evaluations():
+    conn = sqlite3.connect('evaluations.db')
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    
+    # Get filter options
+    models = cursor.execute('SELECT DISTINCT model_name FROM evaluations ORDER BY model_name').fetchall()
+    groups = cursor.execute('SELECT DISTINCT group_name FROM evaluations ORDER BY group_name').fetchall()
+    
+    # Get filter parameters
+    selected_db = 'evaluations.db'
+    selected_model = request.args.get('model', '')
+    selected_group = request.args.get('group', '')
+    min_score = request.args.get('min_score', '')
+    max_score = request.args.get('max_score', '')
+    page = int(request.args.get('page', 1))
+    
+    dbs = [f for f in os.listdir('.') if f.endswith('.db')]
+    
+    # Build query
+    query = 'SELECT * FROM evaluations WHERE 1=1'
+    params = []
+    
+    if selected_model:
+        query += ' AND model_name = ?'
+        params.append(selected_model)
+    if selected_group:
+        query += ' AND group_name = ?'
+        params.append(selected_group)
+    if min_score:
+        query += ' AND score >= ?'
+        params.append(float(min_score))
+    if max_score:
+        query += ' AND score <= ?'
+        params.append(float(max_score))
+    
+    # Get total count
+    count_query = query.replace('SELECT *', 'SELECT COUNT(*)')
+    total_count = cursor.execute(count_query, params).fetchone()[0]
+    
+    # Pagination
+    per_page = 50
+    offset = (page - 1) * per_page
+    total_pages = (total_count + per_page - 1) // per_page
+    
+    query += f' ORDER BY id DESC LIMIT {per_page} OFFSET {offset}'
+    
+    results = cursor.execute(query, params).fetchall()
+    conn.close()
+    
+    return render_template('evaluations.html',
+                         results=results,
+                         total_count=total_count,
+                         page=page,
+                         total_pages=total_pages,
+                         models=models,
+                         groups=groups,
+                         dbs=dbs,
+                         selected_db=selected_db,
+                         selected_model=selected_model,
+                         selected_group=selected_group,
                          min_score=min_score,
                          max_score=max_score)
 
