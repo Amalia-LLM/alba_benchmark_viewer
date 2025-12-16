@@ -94,6 +94,27 @@
             <strong>{{ total_count }}</strong> results found (page {{ page }} of {{ total_pages }})
         </div>
         
+        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; text-align: center;">
+                <div>
+                    <div style="font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 5px;">Average</div>
+                    <div style="font-size: 28px; font-weight: bold; color: #4CAF50;">{{ avg_score }}</div>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 5px;">Median</div>
+                    <div style="font-size: 28px; font-weight: bold; color: #2196F3;">{{ median_score }}</div>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 5px;">Min</div>
+                    <div style="font-size: 28px; font-weight: bold; color: #F44336;">{{ min_score_val }}</div>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 5px;">Max</div>
+                    <div style="font-size: 28px; font-weight: bold; color: #4CAF50;">{{ max_score_val }}</div>
+                </div>
+            </div>
+        </div>
+        
         {% if total_pages > 1 %}
         <div style="text-align: center; margin-bottom: 20px;">
             <div style="display: inline-flex; gap: 10px; align-items: center;">
