@@ -4,24 +4,6 @@ import os
 
 app = Flask(__name__)
 
-def get_readable_model_name(model_name):
-    """Convert long model names to readable short names"""
-    name_map = {
-        'allenai_olmo-2-1124-7b-instruct': 'Olmo-2 7B',
-        'bsc-lt_salamandra-7b-instruct': 'Salamandra 7B',
-        'gpfs_scratch_epor32_amsimplicio_rlvr_outputs_50-new4k-dpo-pt200k-safety_checkpoint-3089-merged': 'Amália PT 50-new4k',
-        'gpfs_scratch_epor32_hub_gemma-3-12b-it': 'Gemma-3 12B',
-        'gpfs_scratch_epor32_hub_gemma-3-12b-it_': 'Gemma-3 12B',
-        'gpfs_scratch_epor32_hub_qwen3-8b': 'Qwen3 8B',
-        'meta-llama_llama-3.1-8b-instruct': 'Llama-3.1 8B',
-        'mistralai_ministral-8b-instruct-2410': 'Ministral 8B',
-        'mistralai_mistral-7b-instruct-v0.3': 'Mistral 7B v0.3',
-        'portulan_gervasio-8b-portuguese-ptpt-decoder': 'Gervásio 8B PT-PT',
-        'qwen_qwen2.5-7b-instruct': 'Qwen2.5 7B',
-        'utter-project_eurollm-9b-instruct': 'EuroLLM 9B'
-    }
-    return name_map.get(model_name, model_name)
-
 def get_db():
     db_name = request.args.get('db', 'new_results.db')
     if not os.path.exists(db_name):
@@ -206,8 +188,8 @@ def conversations():
     cursor = conn.cursor()
     
     # Get filter options
-    models_raw = cursor.execute('SELECT DISTINCT model_name FROM evaluations ORDER BY model_name').fetchall()
-    models = [{'model_name': m[0], 'readable_name': get_readable_model_name(m[0])} for m in models_raw]
+    models = cursor.execute('SELECT DISTINCT model_name FROM evaluations ORDER BY model_name').fetchall()
+    models = [dict(row) for row in models]
     conversations_list = cursor.execute('SELECT DISTINCT conversation_id FROM evaluations ORDER BY conversation_id').fetchall()
     conversations_list = [dict(row) for row in conversations_list]
     for conversation in conversations_list:
@@ -231,6 +213,9 @@ def conversations():
     selected_model = request.args.get('model', '')
     selected_conversation = request.args.get('conversation', '')
     selected_pt_pt = request.args.get('pt_pt_prompt', '')
+    # show_raw checkbox (off by default)
+    selected_show_raw = request.args.get('show_raw', '')
+    show_raw = True if str(selected_show_raw).lower() in ('1', 'on', 'true') else False
     min_score = request.args.get('min_score', '')
     max_score = request.args.get('max_score', '')
     page = int(request.args.get('page', 1))
@@ -285,7 +270,7 @@ def conversations():
     results_with_names = []
     for row in results:
         row_dict = dict(row)
-        row_dict['readable_model_name'] = get_readable_model_name(row['model_name'])
+        row_dict['readable_model_name'] = row['model_name']
         row_dict['conversation_id'] = int(row_dict['conversation_id'].replace('p', '').replace('t', ' '))
         results_with_names.append(row_dict)
     results_with_names.sort(key=lambda x: (x['conversation_id'], x['turn_number']))
@@ -303,6 +288,7 @@ def conversations():
                          selected_model=selected_model,
                          selected_conversation=selected_conversation,
                          selected_pt_pt=selected_pt_pt,
+                         show_raw=show_raw,
                          min_score=min_score,
                          max_score=max_score,
                          avg_score=avg_score,
