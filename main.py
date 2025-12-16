@@ -11,7 +11,7 @@ def get_readable_model_name(model_name):
         'bsc-lt_salamandra-7b-instruct': 'Salamandra 7B',
         'gpfs_scratch_epor32_amsimplicio_rlvr_outputs_50-new4k-dpo-pt200k-safety_checkpoint-3089-merged': 'Amália PT 50-new4k',
         'gpfs_scratch_epor32_hub_gemma-3-12b-it': 'Gemma-3 12B',
-        'gpfs_scratch_epor32_hub_gemma-3-12b-it_': 'Gemma-3 12B (v2)',
+        'gpfs_scratch_epor32_hub_gemma-3-12b-it_': 'Gemma-3 12B',
         'gpfs_scratch_epor32_hub_qwen3-8b': 'Qwen3 8B',
         'meta-llama_llama-3.1-8b-instruct': 'Llama-3.1 8B',
         'mistralai_ministral-8b-instruct-2410': 'Ministral 8B',
